@@ -1,17 +1,20 @@
 import math
 import pygame
 
-SPEED = 2
+SPEED = 8
 RADUIS = 4
 
 
 class Snake:
-    def __init__(self, head_x, head_y, dirct, color):
+    def __init__(self, head_x, head_y, dirct, color, is_die=False):
         self.head_x = head_x
+        self.last_x = head_x
+        self.last_y = head_y
         self.head_y = head_y
         # dirct in radain
         self.dirct = dirct
         self.color = color
+        self.is_die = is_die
 
     def draw(self, win):
         # x += const * sin(a)
@@ -19,4 +22,14 @@ class Snake:
         self.head_x += int(SPEED * math.cos(self.dirct))
         self.head_y += int(SPEED * math.sin(self.dirct))
         pygame.draw.circle(win, self.color, (self.head_x, self.head_y), RADUIS)
+
+    def is_collision(self, dict):
+        if dict.get(self.head_x) is not None:
+            # if self.last_x > self.head_x
+            if dict.get(self.head_x).get(self.head_y):
+                self.is_die = True
+            elif self.head_x < RADUIS or self.head_x + RADUIS > 500:
+                self.is_die = True
+            elif self.head_y < RADUIS or self.head_y + RADUIS > 500:
+                self.is_die = True
 
