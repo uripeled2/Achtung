@@ -1,0 +1,22 @@
+import math
+import pygame
+
+SPEED = 2
+RADUIS = 4
+
+
+class Snake:
+    def __init__(self, head_x, head_y, dirct, color):
+        self.head_x = head_x
+        self.head_y = head_y
+        # dirct in radain
+        self.dirct = dirct
+        self.color = color
+
+    def draw(self, win):
+        # x += const * sin(a)
+        # y += const * cos(a)
+        self.head_x += int(SPEED * math.cos(self.dirct))
+        self.head_y += int(SPEED * math.sin(self.dirct))
+        pygame.draw.circle(win, self.color, (self.head_x, self.head_y), RADUIS)
+
