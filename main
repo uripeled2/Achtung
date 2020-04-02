@@ -1,13 +1,14 @@
 
 from snake import *
 import pygame
+import random
 
 pygame.init()
 
 win = pygame.display.set_mode((500, 500))
 pygame.display.set_caption("First Game")
 
-import random
+
 run = True
 
 cs1 = Snake(250, 250, math.pi / 4, (255, 0, 0))
@@ -15,11 +16,10 @@ cs2 = Snake(400, 200, math.pi / 2, (0, 255, 0))
 lst_of_snakes = [cs1, cs2]
 
 # dict: key = pos_x; value = dict: key = pos_y; value = True;
-times = 0
+count = 0
 
 while run:
     pygame.time.delay(50)
-    times += 1
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
@@ -32,6 +32,7 @@ while run:
     if keys[pygame.K_RIGHT]:
         lst_of_snakes[0].direct += CHENGEANGEL
 
+    # check if everyone are dead
     all_die = True
     for s in lst_of_snakes:
         if not s.is_die:
@@ -40,14 +41,30 @@ while run:
         pygame.time.delay(1000)
         pygame.quit()
 
+    # move and draw the snakes
     for s in lst_of_snakes:
+        if s.is_hop:
+            s.when_to_stop -= 1
+            if s.when_to_stop <= 0:
+                s.is_hop = False
+                s.when_to_hop = random.choice(WIATUNTILHOP)
+        elif s.when_to_hop <= 0:
+            s.is_hop = True
+            s.when_to_stop = HOPINGTIME
+        else:
+            s.when_to_hop -= 1
+
         if s.is_die:
             continue
         s.bef_dict = {}
         add(s.bef_dict, s.head_x, s.head_y, RADUIS)
+        s.last = (s.head_x, s.head_y)
         s.move()
         s.draw(win)
+        if s.is_hop:
+            s.delete_last(win)
 
+    # find collision
     for s1 in lst_of_snakes:
         if s1.is_die:
             continue
@@ -58,9 +75,11 @@ while run:
             if s1 == s2:
                 continue
             s1.is_collision(s2.main_dict)
-    for s in lst_of_snakes:
-        add(s.main_dict, s.head_x, s.head_y, RADUIS)
 
+    # add new parts to main_dict
+    for s in lst_of_snakes:
+        if not s.is_hop:
+            add(s.main_dict, s.head_x, s.head_y, RADUIS)
 
     pygame.display.update()
 
