@@ -1,9 +1,13 @@
 import math
 import pygame
+import random
 
 SPEED = 4
-RADUIS = 8
+RADUIS = 4
 CHENGEANGEL = math.pi / 16
+BACKGROUND = (0, 0, 0)
+WIATUNTILHOP = (2 * 50 / 4, 6 * 50 / 4)
+HOPINGTIME = int(3.5 * 50 / 12)
 
 
 def add(dict, x, y, r):
@@ -42,6 +46,10 @@ class Snake:
         add(self.main_dict, head_x, head_y, RADUIS)
         self.bef_dict = {}
         add(self.bef_dict, head_x, head_y, RADUIS)
+        self.is_hop = False
+        self.last = (head_x, head_y)
+        self.when_to_hop = random.choice(WIATUNTILHOP)
+        self.when_to_stop = HOPINGTIME
 
     def move(self):
         # x += const * sin(a)
@@ -50,8 +58,7 @@ class Snake:
         self.head_y += int(SPEED * math.sin(self.direct))
 
     def draw(self, win):
-        if not self.is_hop:
-            pygame.draw.circle(win, self.color, (self.head_x, self.head_y), RADUIS)
+        pygame.draw.circle(win, self.color, (self.head_x, self.head_y), RADUIS)
 
     def is_collision(self, dict):
         for i in range(2 * RADUIS):
@@ -97,3 +104,7 @@ class Snake:
                         if bo:
                             self.is_die = bo
                             return True
+
+    def delete_last(self, win):
+        pygame.draw.circle(win, BACKGROUND, self.last, RADUIS)
+
