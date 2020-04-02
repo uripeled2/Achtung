@@ -43,12 +43,15 @@ class Snake:
         self.bef_dict = {}
         add(self.bef_dict, head_x, head_y, RADUIS)
 
-    def draw(self, win):
+    def move(self):
         # x += const * sin(a)
         # y += const * cos(a)
         self.head_x += int(SPEED * math.cos(self.direct))
         self.head_y += int(SPEED * math.sin(self.direct))
-        pygame.draw.circle(win, self.color, (self.head_x, self.head_y), RADUIS)
+
+    def draw(self, win):
+        if not self.is_hop:
+            pygame.draw.circle(win, self.color, (self.head_x, self.head_y), RADUIS)
 
     def is_collision(self, dict):
         for i in range(2 * RADUIS):
