@@ -28,18 +28,20 @@ while run:
 
     if keys[pygame.K_LEFT]:
         lst_of_snakes[0].direct -= CHENGEANGEL
-
     if keys[pygame.K_RIGHT]:
         lst_of_snakes[0].direct += CHENGEANGEL
 
-    # check if everyone are dead
-    all_die = True
+    if keys[pygame.K_a]:
+        lst_of_snakes[1].direct -= CHENGEANGEL
+    if keys[pygame.K_s]:
+        lst_of_snakes[1].direct += CHENGEANGEL
+
+    # stop if anyone is die
+    die  = False
     for s in lst_of_snakes:
-        if not s.is_die:
-            all_die = False
-    if all_die:
-        pygame.time.delay(1000)
-        pygame.quit()
+        if s.is_die:
+            pygame.time.delay(1000)
+            pygame.quit()
 
     # move and draw the snakes
     for s in lst_of_snakes:
@@ -66,7 +68,7 @@ while run:
 
     # find collision
     for s1 in lst_of_snakes:
-        if s1.is_die:
+        if s1.is_die or s1.is_hop:
             continue
         s1.is_collision_with_himself()
         for s2 in lst_of_snakes:
