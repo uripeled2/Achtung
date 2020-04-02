@@ -1,35 +1,96 @@
 import math
 import pygame
 
-SPEED = 8
-RADUIS = 4
+SPEED = 4
+RADUIS = 8
+CHENGEANGEL = math.pi / 16
+
+
+def add(dict, x, y, r):
+    for i in range(2 * r):
+        if i >= r:
+            i = r - i
+        if dict.get(x + i) is None:
+            dict[x + i] = {}
+        for q in range(r):
+            dict[x + i][y + q] = True
+        for q in range(r):
+            dict[x + i][y - q] = True
+
+
+def remove(dict, x, y, r):
+    for i in range(2 * r):
+        if i >= r:
+            i = r - i
+        if dict.get(x + i) is None:
+            dict[x + i] = {}
+        for q in range(r):
+            dict[x + i][y + q] = False
+        for q in range(r):
+            dict[x + i][y - q] = False
 
 
 class Snake:
-    def __init__(self, head_x, head_y, dirct, color, is_die=False):
+    def __init__(self, head_x, head_y, direct, color, is_die=False):
         self.head_x = head_x
-        self.last_x = head_x
-        self.last_y = head_y
         self.head_y = head_y
-        # dirct in radain
-        self.dirct = dirct
+        # direct in radain
+        self.direct = direct
         self.color = color
         self.is_die = is_die
+        self.main_dict = {}
+        add(self.main_dict, head_x, head_y, RADUIS)
+        self.bef_dict = {}
+        add(self.bef_dict, head_x, head_y, RADUIS)
 
     def draw(self, win):
         # x += const * sin(a)
         # y += const * cos(a)
-        self.head_x += int(SPEED * math.cos(self.dirct))
-        self.head_y += int(SPEED * math.sin(self.dirct))
+        self.head_x += int(SPEED * math.cos(self.direct))
+        self.head_y += int(SPEED * math.sin(self.direct))
         pygame.draw.circle(win, self.color, (self.head_x, self.head_y), RADUIS)
 
     def is_collision(self, dict):
-        if dict.get(self.head_x) is not None:
-            # if self.last_x > self.head_x
-            if dict.get(self.head_x).get(self.head_y):
-                self.is_die = True
-            elif self.head_x < RADUIS or self.head_x + RADUIS > 500:
-                self.is_die = True
-            elif self.head_y < RADUIS or self.head_y + RADUIS > 500:
-                self.is_die = True
+        for i in range(2 * RADUIS):
+            if i >= RADUIS:
+                i = RADUIS - i
+            if dict.get(self.head_x + i) is not None:
+                for q in range(2 * RADUIS):
+                    if q >= RADUIS:
+                        q = RADUIS - q
+                    if dict.get(self.head_x + i).get(self.head_y + q):
+                        bo = True
+                        # if self.bef_dict.get(self.head_x + i) is not None:
+                        #     if self.bef_dict.get(self.head_x + i).get(self.head_y + q):
+                        #         bo = False
+                        if bo:
+                            self.is_die = bo
+                        # if bo:
+                        #     return True
 
+        if self.head_x < RADUIS or self.head_x + RADUIS > 500:
+            self.is_die = True
+            return True
+
+        elif self.head_y < RADUIS or self.head_y + RADUIS > 500:
+            self.is_die = True
+            return True
+
+        #return False
+
+    def is_collision_with_himself(self):
+        for i in range(2 * RADUIS):
+            if i >= RADUIS:
+                i = RADUIS - i
+            if self.main_dict.get(self.head_x + i) is not None:
+                for q in range(2 * RADUIS):
+                    if q >= RADUIS:
+                        q = RADUIS - q
+                    if self.main_dict.get(self.head_x + i).get(self.head_y + q):
+                        bo = True
+                        if self.bef_dict.get(self.head_x + i) is not None:
+                            if self.bef_dict.get(self.head_x + i).get(self.head_y + q):
+                                bo = False
+                        if bo:
+                            self.is_die = bo
+                            return True
