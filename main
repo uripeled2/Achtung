@@ -45,6 +45,7 @@ while run:
             continue
         s.bef_dict = {}
         add(s.bef_dict, s.head_x, s.head_y, RADUIS)
+        s.move()
         s.draw(win)
 
     for s1 in lst_of_snakes:
