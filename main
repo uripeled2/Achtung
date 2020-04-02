@@ -1,3 +1,4 @@
+
 from snake import *
 import pygame
 
@@ -8,16 +9,58 @@ pygame.display.set_caption("First Game")
 
 import random
 run = True
-s1 = Snake(250, 250, math.pi / 4, (255, 0, 0))
-while run:
-    pygame.time.delay(10)
 
+cs1 = Snake(250, 250, math.pi / 4, (255, 0, 0))
+cs2 = Snake(400, 200, math.pi / 2, (0, 255, 0))
+lst_of_snakes = [cs1, cs2]
+
+# dict: key = pos_x; value = dict: key = pos_y; value = True;
+times = 0
+
+while run:
+    pygame.time.delay(50)
+    times += 1
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
 
-    s1.draw(win)
-    #s1.dirct += random.choice(range(10))
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_LEFT]:
+        lst_of_snakes[0].direct -= CHENGEANGEL
+
+    if keys[pygame.K_RIGHT]:
+        lst_of_snakes[0].direct += CHENGEANGEL
+
+    all_die = True
+    for s in lst_of_snakes:
+        if not s.is_die:
+            all_die = False
+    if all_die:
+        pygame.time.delay(1000)
+        pygame.quit()
+
+    for s in lst_of_snakes:
+        if s.is_die:
+            continue
+        s.bef_dict = {}
+        add(s.bef_dict, s.head_x, s.head_y, RADUIS)
+        s.draw(win)
+
+    for s1 in lst_of_snakes:
+        if s1.is_die:
+            continue
+        s1.is_collision_with_himself()
+        for s2 in lst_of_snakes:
+            if s1.is_die:
+                break
+            if s1 == s2:
+                continue
+            s1.is_collision(s2.main_dict)
+    for s in lst_of_snakes:
+        add(s.main_dict, s.head_x, s.head_y, RADUIS)
+
+
     pygame.display.update()
 
 pygame.quit()
