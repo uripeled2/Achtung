@@ -1,13 +1,12 @@
 import math
 import pygame
 import random
-from pygame.math import Vector2 as Vec2
 
 WIDTH = 500
 LENGTH = 500
 FRAME = 10
 SPEED = 1
-RADUIS = 5
+RADUIS = 4
 # CHENGEANGEL = math.pi / (SPEED * 5)
 CHENGEANGEL = SPEED * 2 * (math.pi / 180)
 BACKGROUND = (0, 0, 0)
@@ -47,20 +46,20 @@ class Snake:
 
     def collision(self, snake):
         def collision_between_two_dots(pos1, pos2):
-            if pos2[0] > pos1[0] and pos2[0] > pos1[0] + 2 * RADUIS:
-                # no coll
-                return False
-            elif pos2[0] < pos1[0] and pos2[0] + 2 * RADUIS < pos1[0]:
-                # no coll
-                return False
-            elif pos2[1] > pos1[1] and pos2[1] > pos1[1] + 2 * RADUIS:
-                # no coll
-                return False
-            elif pos2[1] < pos1[1] and pos2[1] + 2 * RADUIS < pos1[1]:
-                # no coll
-                return False
-            else:
-                return True
+            x1 = pos1[0]
+            x2 = pos2[0]
+            y1 = pos1[1]
+            y2 = pos2[1]
+            for x in range(4 * RADUIS):
+                if x >= 2 * RADUIS:
+                    x = 2 * RADUIS - x
+                if x1 + x == x2:
+                    for y in range(4 * RADUIS):
+                        if y >= 2 * RADUIS:
+                            y = 2 * RADUIS - y
+                        if y1 + y == y2:
+                            return True
+            return False
 
         for x in range(4 * RADUIS):
             if x >= 2 * RADUIS:
@@ -71,6 +70,8 @@ class Snake:
                         y = 2 * RADUIS - y
                     if snake.history.get(self.int_pos[0] + x).get(self.int_pos[1] + y):
                         if self == snake and collision_between_two_dots((self.int_pos[0] + x, self.int_pos[1] + y), self.last):
+                            # print(f"last: {self.last}")
+                            # print(f"pos: {(self.int_pos[0] + x, self.int_pos[1] + y)}")
                             continue
                         else:
                             self.is_dead = True
