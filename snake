@@ -1,110 +1,87 @@
 import math
 import pygame
 import random
+from pygame.math import Vector2 as Vec2
 
-SPEED = 4
-RADUIS = 4
-CHENGEANGEL = math.pi / 16
+WIDTH = 500
+LENGTH = 500
+FRAME = 10
+SPEED = 1
+RADUIS = 5
+# CHENGEANGEL = math.pi / (SPEED * 5)
+CHENGEANGEL = SPEED * 2 * (math.pi / 180)
 BACKGROUND = (0, 0, 0)
-WIATUNTILHOP = (2 * 50 / 4, 6 * 50 / 4)
-HOPINGTIME = int(3.5 * 50 / 12)
-
-
-def add(dict, x, y, r):
-    for i in range(2 * r):
-        if i >= r:
-            i = r - i
-        if dict.get(x + i) is None:
-            dict[x + i] = {}
-        for q in range(r):
-            dict[x + i][y + q] = True
-        for q in range(r):
-            dict[x + i][y - q] = True
-
-
-def remove(dict, x, y, r):
-    for i in range(2 * r):
-        if i >= r:
-            i = r - i
-        if dict.get(x + i) is None:
-            dict[x + i] = {}
-        for q in range(r):
-            dict[x + i][y + q] = False
-        for q in range(r):
-            dict[x + i][y - q] = False
+WIATUNTILHOP = (10 * FRAME, 15 * FRAME)
+# HOPINGTIME = int(3.5 * 500 / (SPEED * FRAME))
+HOPINGTIME = int(3.5 * FRAME / SPEED)
 
 
 class Snake:
-    def __init__(self, head_x, head_y, direct, color, is_die=False):
-        self.head_x = head_x
-        self.head_y = head_y
-        # direct in radain
-        self.direct = direct
+    def __init__(self, head_x, head_y, direct, color, is_dead=False):
+        self.position = (head_x, head_y)
+        self.int_pos = (int(head_x), int(head_y))
+        self.last = self.int_pos
         self.color = color
-        self.is_die = is_die
-        self.main_dict = {}
-        add(self.main_dict, head_x, head_y, RADUIS)
-        self.bef_dict = {}
-        add(self.bef_dict, head_x, head_y, RADUIS)
+        self.is_dead = is_dead
+        self.history = {}
+        self.history[self.int_pos[0]] = {}
+        self.history[self.int_pos[0]][self.int_pos[1]] = True
+        self.direct = direct
         self.is_hop = False
-        self.last = (head_x, head_y)
         self.when_to_hop = random.choice(WIATUNTILHOP)
         self.when_to_stop = HOPINGTIME
 
     def move(self):
-        # x += const * sin(a)
-        # y += const * cos(a)
-        self.head_x += int(SPEED * math.cos(self.direct))
-        self.head_y += int(SPEED * math.sin(self.direct))
+        v1 = self.position[0] + SPEED * math.cos(self.direct)
+        v2 = self.position[1] + SPEED * math.sin(self.direct)
+        tu = (v1, v2)
+        self.position = tu
+        # self.int_pos = (int(self.position[0]),  int(self.position[1]))
+        self.int_pos = (round(self.position[0]), round(self.position[1]))
 
     def draw(self, win):
-        pygame.draw.circle(win, self.color, (self.head_x, self.head_y), RADUIS)
+        pygame.draw.circle(win, self.color, self.int_pos, RADUIS)
+        for key in self.history:
+            for k in self.history[key]:
+                pygame.draw.circle(win, self.color, (key, k), RADUIS)
 
-    def is_collision(self, dict):
-        for i in range(2 * RADUIS):
-            if i >= RADUIS:
-                i = RADUIS - i
-            if dict.get(self.head_x + i) is not None:
-                for q in range(2 * RADUIS):
-                    if q >= RADUIS:
-                        q = RADUIS - q
-                    if dict.get(self.head_x + i).get(self.head_y + q):
-                        bo = True
-                        # if self.bef_dict.get(self.head_x + i) is not None:
-                        #     if self.bef_dict.get(self.head_x + i).get(self.head_y + q):
-                        #         bo = False
-                        if bo:
-                            self.is_die = bo
-                        # if bo:
-                        #     return True
+    def collision(self, snake):
+        def collision_between_two_dots(pos1, pos2):
+            if pos2[0] > pos1[0] and pos2[0] > pos1[0] + 2 * RADUIS:
+                # no coll
+                return False
+            elif pos2[0] < pos1[0] and pos2[0] + 2 * RADUIS < pos1[0]:
+                # no coll
+                return False
+            elif pos2[1] > pos1[1] and pos2[1] > pos1[1] + 2 * RADUIS:
+                # no coll
+                return False
+            elif pos2[1] < pos1[1] and pos2[1] + 2 * RADUIS < pos1[1]:
+                # no coll
+                return False
+            else:
+                return True
 
-        if self.head_x < RADUIS or self.head_x + RADUIS > 500:
-            self.is_die = True
+        for x in range(4 * RADUIS):
+            if x >= 2 * RADUIS:
+                x = 2 * RADUIS - x
+            if snake.history.get(self.int_pos[0] + x) is not None:
+                for y in range(4 * RADUIS):
+                    if y >= 2 * RADUIS:
+                        y = 2 * RADUIS - y
+                    if snake.history.get(self.int_pos[0] + x).get(self.int_pos[1] + y):
+                        if self == snake and collision_between_two_dots((self.int_pos[0] + x, self.int_pos[1] + y), self.last):
+                            continue
+                        else:
+                            self.is_dead = True
+
+    def outside(self):
+        if self.int_pos[0] < RADUIS or self.int_pos[0] + RADUIS > 500:
+            self.is_dead = True
             return True
 
-        elif self.head_y < RADUIS or self.head_y + RADUIS > 500:
-            self.is_die = True
+        if self.int_pos[1] < RADUIS or self.int_pos[1] + RADUIS > 500:
+            self.is_dead = True
             return True
 
-        #return False
-
-    def is_collision_with_himself(self):
-        for i in range(2 * RADUIS):
-            if i >= RADUIS:
-                i = RADUIS - i
-            if self.main_dict.get(self.head_x + i) is not None:
-                for q in range(2 * RADUIS):
-                    if q >= RADUIS:
-                        q = RADUIS - q
-                    if self.main_dict.get(self.head_x + i).get(self.head_y + q):
-                        bo = True
-                        if self.bef_dict.get(self.head_x + i) is not None:
-                            if self.bef_dict.get(self.head_x + i).get(self.head_y + q):
-                                bo = False
-                        if bo:
-                            self.is_die = bo
-                            return True
-
-    def delete_last(self, win):
-        pygame.draw.circle(win, BACKGROUND, self.last, RADUIS)
 
