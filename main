@@ -1,4 +1,3 @@
-
 from snake import *
 import pygame
 import random
@@ -7,7 +6,6 @@ pygame.init()
 
 win = pygame.display.set_mode((500, 500))
 pygame.display.set_caption("First Game")
-
 
 run = True
 
@@ -19,7 +17,8 @@ lst_of_snakes = [cs1, cs2]
 count = 0
 
 while run:
-    pygame.time.delay(50)
+    win.fill((0, 0, 0))
+    pygame.time.delay(FRAME)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
@@ -37,14 +36,27 @@ while run:
         lst_of_snakes[1].direct += CHENGEANGEL
 
     # stop if anyone is die
-    die  = False
-    for s in lst_of_snakes:
-        if s.is_die:
-            pygame.time.delay(1000)
-            pygame.quit()
+    # die = False
+    # for s in lst_of_snakes:
+    #     if s.is_dead:
+    #         pygame.time.delay(1000)
+    #         pygame.quit()
 
-    # move and draw the snakes
+    # stop if evrey one are dead
+    die = True
     for s in lst_of_snakes:
+        if not s.is_dead:
+            die = False
+    if die:
+        pygame.time.delay(1000)
+        pygame.quit()
+
+
+    # move the snakes
+    for s in lst_of_snakes:
+        if s.is_dead:
+            continue
+
         if s.is_hop:
             s.when_to_stop -= 1
             if s.when_to_stop <= 0:
@@ -56,32 +68,37 @@ while run:
         else:
             s.when_to_hop -= 1
 
-        if s.is_die:
-            continue
-        s.bef_dict = {}
-        add(s.bef_dict, s.head_x, s.head_y, RADUIS)
-        s.last = (s.head_x, s.head_y)
+        s.last = s.int_pos
         s.move()
+
+    # draw the snakes
+    for s in lst_of_snakes:
         s.draw(win)
-        if s.is_hop:
-            s.delete_last(win)
 
     # find collision
     for s1 in lst_of_snakes:
-        if s1.is_die or s1.is_hop:
+        if s1.is_dead:
             continue
-        s1.is_collision_with_himself()
+        if s1.is_hop:
+            s1.outside()
+            continue
+        if s1.collision(s1):
+            continue
+        s1.outside()
         for s2 in lst_of_snakes:
-            if s1.is_die:
+            if s1.is_dead:
                 break
             if s1 == s2:
                 continue
-            s1.is_collision(s2.main_dict)
+            s1.collision(s2)
 
-    # add new parts to main_dict
-    for s in lst_of_snakes:
-        if not s.is_hop:
-            add(s.main_dict, s.head_x, s.head_y, RADUIS)
+    for s1 in lst_of_snakes:
+        if s1.is_hop or s1.is_dead:
+            continue
+        elif s1.history.get(s1.int_pos[0]) is None:
+            s1.history[s1.int_pos[0]] = {}
+
+        s1.history[s1.int_pos[0]][s1.int_pos[1]] = True
 
     pygame.display.update()
 
