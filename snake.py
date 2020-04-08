@@ -15,6 +15,18 @@ WIATUNTILHOP = (10 * FRAME, 15 * FRAME)
 HOPINGTIME = int(3.5 * FRAME / SPEED)
 
 
+def collision_between_two_dots(pos1, pos2):
+    x1 = pos1[0]
+    x2 = pos2[0]
+    y1 = pos1[1]
+    y2 = pos2[1]
+
+    if x1 == x2 or x1 < x2 < x1 + 2 * RADUIS or x1 - 2 * RADUIS < x2 < x1:
+        if y1 == y2 or y1 < y2 < y1 + 2 * RADUIS or y1 - 2 * RADUIS < y2 < y1:
+            return True
+    return False
+
+
 class Snake:
     def __init__(self, head_x, head_y, direct, color, is_dead=False):
         self.position = (head_x, head_y)
@@ -45,21 +57,6 @@ class Snake:
                 pygame.draw.circle(win, self.color, (key, k), RADUIS)
 
     def collision(self, snake):
-        def collision_between_two_dots(pos1, pos2):
-            x1 = pos1[0]
-            x2 = pos2[0]
-            y1 = pos1[1]
-            y2 = pos2[1]
-            for x in range(4 * RADUIS):
-                if x >= 2 * RADUIS:
-                    x = 2 * RADUIS - x
-                if x1 + x == x2:
-                    for y in range(4 * RADUIS):
-                        if y >= 2 * RADUIS:
-                            y = 2 * RADUIS - y
-                        if y1 + y == y2:
-                            return True
-            return False
 
         for x in range(4 * RADUIS):
             if x >= 2 * RADUIS:
