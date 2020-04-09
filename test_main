@@ -10,7 +10,7 @@ def crete_input(snake: Snake, lst_of_snakes: list, nums_of_angels: int = 8) -> l
     for i in range(nums_of_angels):
         min_dis = None
         angle = ((2 * math.pi) / nums_of_angels) * i
-        if angle == math.pi or math.pi / 2:
+        if angle == math.pi or math.pi / 2 == 0:
             # special because the x stays
             if angle == math.pi:
                 num = -1
