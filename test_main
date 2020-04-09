@@ -1,6 +1,6 @@
 
 import random
-from new_snake import *
+from snake import *
 import numpy
 
 
