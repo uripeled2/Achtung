@@ -1,6 +1,6 @@
 
 import random
-from snake import *
+from new_snake import *
 import numpy
 
 
@@ -10,7 +10,7 @@ def crete_input(snake: Snake, lst_of_snakes: list, nums_of_angels: int = 8) -> l
     for i in range(nums_of_angels):
         min_dis = None
         angle = ((2 * math.pi) / nums_of_angels) * i
-        if angle == math.pi or math.pi / 2 == 0:
+        if angle == math.pi * 1.5 or math.pi / 2 == angle:
             # special because the x stays
             if angle == math.pi:
                 num = -1
@@ -20,18 +20,21 @@ def crete_input(snake: Snake, lst_of_snakes: list, nums_of_angels: int = 8) -> l
             move_y = num * 4
 
             temp_s = Snake(snake.int_pos[0] + move_x, snake.int_pos[1] + move_y, 0, None)
-            while True:
+            bo = True
+            while bo:
                 # search collision
                 if temp_s.outside():
                     min_dis = math.sqrt((move_x ** 2) + (move_y ** 2))
+                    bo = False
                     break
                 for s in lst_of_snakes:
                     if temp_s.collision(s):
-                        if s == snake and collision_between_two_dots(temp_s.int_pos,
+                        if False and s == snake and collision_between_two_dots(temp_s.int_pos,
                                                                      s.int_pos):  # collision_between_two_dots((self.int_pos[0] + x, self.int_pos[1] + y), self.last)
-                            pass
+                            continue
                         else:
                             min_dis = math.sqrt((move_x ** 2) + (move_y ** 2))
+                            bo = False
                             break
 
                 # move
@@ -41,7 +44,6 @@ def crete_input(snake: Snake, lst_of_snakes: list, nums_of_angels: int = 8) -> l
             # TODO also add the second well
             lst.append(min_dis)
 
-            pass
         else:
             if angle < math.pi / 2 or angle > math.pi * (270 / 180):  # angle < 90 angle or > 270
                 num = 1
@@ -56,24 +58,28 @@ def crete_input(snake: Snake, lst_of_snakes: list, nums_of_angels: int = 8) -> l
             #     move_y = a * math.sin(angle)
 
             temp_s = Snake(snake.int_pos[0] + move_x, snake.int_pos[1] + move_y, 0, None)
-            while True:
+            bo = True
+            while bo:
                 # search collision
                 if temp_s.outside():
                     min_dis = math.sqrt((move_x ** 2) + (move_y ** 2))
                     break
                 for s in lst_of_snakes:
                     if temp_s.collision(s):
+                        # print("uri")
                         if s == snake and collision_between_two_dots(temp_s.int_pos,
                                                                      s.int_pos):  # collision_between_two_dots((self.int_pos[0] + x, self.int_pos[1] + y), self.last)
                             pass
                         else:
                             min_dis = math.sqrt((move_x ** 2) + (move_y ** 2))
+                            bo = False
                             break
 
                 # move
                 move_x += num
                 a = move_x / math.cos(angle)
                 move_y = round(a * math.sin(angle))
+
                 # while move_y != int(move_y):
                 #     move_x += num
                 #     a = move_x / math.cos(angle)
@@ -81,6 +87,7 @@ def crete_input(snake: Snake, lst_of_snakes: list, nums_of_angels: int = 8) -> l
                 temp_s.int_pos = (snake.int_pos[0] + move_x, snake.int_pos[1] + move_y)
 
             # TODO also add the second well
+            print(move_x, move_y)
             lst.append(min_dis)
 
     return lst
@@ -191,7 +198,8 @@ while run:
 
         # debug colse well
         lst = crete_input(lst_of_snakes[0], lst_of_snakes, 1)
-        print(lst)
+        # lst = crete_input(lst_of_snakes[0], lst_of_snakes)
+        #print(lst)
 
         # make a dealy
         # num = 0
