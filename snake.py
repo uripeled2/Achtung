@@ -41,6 +41,7 @@ class Snake:
         self.is_hop = False
         self.when_to_hop = random.choice(WIATUNTILHOP)
         self.when_to_stop = HOPINGTIME
+        self.survival_time = 0
 
     def move(self):
         v1 = self.position[0] + SPEED * math.cos(self.direct)
@@ -66,12 +67,16 @@ class Snake:
                     if y >= 2 * RADUIS:
                         y = 2 * RADUIS - y
                     if snake.history.get(self.int_pos[0] + x).get(self.int_pos[1] + y):
-                        if self == snake and collision_between_two_dots((self.int_pos[0] + x, self.int_pos[1] + y), self.last):
+                        if self == snake and snake.color is not None and collision_between_two_dots((self.int_pos[0] + x, self.int_pos[1] + y), self.last):
+                            if snake.color is None:
+                                print("uri")
                             # print(f"last: {self.last}")
                             # print(f"pos: {(self.int_pos[0] + x, self.int_pos[1] + y)}")
                             continue
                         else:
                             self.is_dead = True
+                            return True
+        return False
 
     def outside(self):
         if self.int_pos[0] < RADUIS or self.int_pos[0] + RADUIS > 500:
@@ -81,5 +86,7 @@ class Snake:
         if self.int_pos[1] < RADUIS or self.int_pos[1] + RADUIS > 500:
             self.is_dead = True
             return True
+
+        return False
 
 
