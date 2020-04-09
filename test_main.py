@@ -10,92 +10,75 @@ def crete_input(snake: Snake, lst_of_snakes: list, nums_of_angels: int = 8) -> l
     for i in range(nums_of_angels):
         min_dis = None
         angle = ((2 * math.pi) / nums_of_angels) * i
+
+        is_normal = True
         if angle == math.pi * 1.5 or math.pi / 2 == angle:
-            # special because the x stays
-            if angle == math.pi:
-                num = -1
+            is_normal = False
+
+        # define limts
+        if angle > math.pi * 1.5 or math.pi / 2 > angle:
+            min_x = snake.int_pos[0]
+            max_x = WIDTH - RADUIS
+        elif angle == math.pi * 1.5 or math.pi / 2 == angle:
+            min_x = snake.int_pos[0] - RADUIS
+            max_x = snake.int_pos[0] + RADUIS # raduis /2 ???
+        else:
+            min_x = RADUIS
+            max_x = snake.int_pos[0]
+
+        if angle <= math.pi:
+            min_y = snake.int_pos[1]
+            # max_y = LENGTH - RADUIS
+            if not is_normal:
+                max_y = LENGTH - RADUIS
             else:
-                num = 1
-            move_x = 0
-            move_y = num * 4
-
-            temp_s = Snake(snake.int_pos[0] + move_x, snake.int_pos[1] + move_y, 0, None)
-            bo = True
-            while bo:
-                # search collision
-                if temp_s.outside():
-                    min_dis = math.sqrt((move_x ** 2) + (move_y ** 2))
-                    bo = False
-                    break
-                for s in lst_of_snakes:
-                    if temp_s.collision(s):
-                        if False and s == snake and collision_between_two_dots(temp_s.int_pos,
-                                                                     s.int_pos):  # collision_between_two_dots((self.int_pos[0] + x, self.int_pos[1] + y), self.last)
-                            continue
-                        else:
-                            min_dis = math.sqrt((move_x ** 2) + (move_y ** 2))
-                            bo = False
-                            break
-
-                # move
-                move_y += num
-                temp_s.int_pos = (snake.int_pos[0] + move_x, snake.int_pos[1] + move_y)
-
-            # TODO also add the second well
-            lst.append(min_dis)
+                hypotenuse = max_x / math.cos(angle)
+                max_y = round(hypotenuse * math.sin(angle))
 
         else:
-            if angle < math.pi / 2 or angle > math.pi * (270 / 180):  # angle < 90 angle or > 270
-                num = 1
+            max_y = snake.int_pos[1]
+            if not is_normal:
+                min_y = RADUIS
             else:
-                num = -1
-            move_x = num * 4
-            a = move_x / math.cos(angle)
-            move_y = round(a * math.sin(angle))
-            # while move_y != int(move_y):
-            #     move_x += num
-            #     a = move_x / math.cos(angle)
-            #     move_y = a * math.sin(angle)
+                hypotenuse = min_x / math.cos(angle)
+                min_y = round(hypotenuse * math.sin(angle))
 
-            temp_s = Snake(snake.int_pos[0] + move_x, snake.int_pos[1] + move_y, 0, None)
-            bo = True
-            while bo:
-                # search collision
-                if temp_s.outside():
-                    min_dis = math.sqrt((move_x ** 2) + (move_y ** 2))
-                    break
-                for s in lst_of_snakes:
-                    if temp_s.collision(s):
-                        # print("uri")
-                        if s == snake and collision_between_two_dots(temp_s.int_pos,
-                                                                     s.int_pos):  # collision_between_two_dots((self.int_pos[0] + x, self.int_pos[1] + y), self.last)
-                            pass
-                        else:
-                            min_dis = math.sqrt((move_x ** 2) + (move_y ** 2))
+
+
+        # loop
+        for s in lst_of_snakes:
+            for key_x in s.history:
+                if key_x < min_x or key_x > max_x:
+                    continue
+                if not is_normal:
+                    hypotenuse = False
+                else:
+                    hypotenuse = key_x / math.cos(angle)
+                    taregt_y = round(hypotenuse * math.sin(angle))
+                for key_y in s.history[key_x]:
+                    if min_y <= key_y <= max_y:
+                        bo = True
+                        if hypotenuse:
                             bo = False
-                            break
+                            if collision_between_two_dots((key_x, key_y), (key_x, taregt_y)):
+                                bo = True
+                        if bo:
+                            # print("uri")
+                            temp_dis = math.sqrt(((snake.int_pos[0] - key_x) ** 2) + ((snake.int_pos[1] - key_y) ** 2))
+                            if min_dis is None or temp_dis < min_dis:
+                                min_dis = temp_dis
+                            # break # becuse the rest of the y dont buderr me anymore??
+                            # only break if the angle is not 90 or 270
 
-                # move
-                move_x += num
-                a = move_x / math.cos(angle)
-                move_y = round(a * math.sin(angle))
+        temp_dis = math.sqrt(((max_x - snake.int_pos[0]) ** 2) + ((max_y - snake.int_pos[1]) ** 2))
+        if min_dis is None or temp_dis < min_dis:
+            # well is edge
+            min_dis = temp_dis
 
-                # while move_y != int(move_y):
-                #     move_x += num
-                #     a = move_x / math.cos(angle)
-                #     move_y = a * math.sin(angle)
-                temp_s.int_pos = (snake.int_pos[0] + move_x, snake.int_pos[1] + move_y)
-
-            # TODO also add the second well
-            print(move_x, move_y)
-            lst.append(min_dis)
-
+        # TODO also add second well
+        lst.append(min_dis)
     return lst
 
-
-# from new_snake import *
-# import pygame
-# import random
 
 pygame.init()
 
@@ -197,9 +180,9 @@ while run:
             s1.history[s1.int_pos[0]][s1.int_pos[1]] = True
 
         # debug colse well
-        lst = crete_input(lst_of_snakes[0], lst_of_snakes, 1)
-        # lst = crete_input(lst_of_snakes[0], lst_of_snakes)
-        #print(lst)
+        # lst = crete_input(lst_of_snakes[0], lst_of_snakes, 1)
+        lst = crete_input(lst_of_snakes[0], lst_of_snakes)
+        print(lst)
 
         # make a dealy
         # num = 0
