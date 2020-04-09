@@ -5,79 +5,79 @@ import numpy
 
 
 # input[0..8] = first wall from this angle (0, 45, 90, 135, 180, 225, 270, 315)
+
 def crete_input(snake: Snake, lst_of_snakes: list, nums_of_angels: int = 8) -> list:
-    lst = []
-    for i in range(nums_of_angels):
-        min_dis = None
-        angle = ((2 * math.pi) / nums_of_angels) * i
+    # define the 0,0 point
+    x_0 = snake.int_pos[0]
+    y_0 = snake.int_pos[0]
 
-        is_normal = True
-        if angle == math.pi * 1.5 or math.pi / 2 == angle:
-            is_normal = False
+    min_dis_0 = 500 - y_0 - RADUIS
+    min_dis_90 = 500 - x_0 - RADUIS
+    min_dis_180 = y_0 - RADUIS
+    min_dis_270 = x_0 - RADUIS
 
-        # define limts
-        if angle > math.pi * 1.5 or math.pi / 2 > angle:
-            min_x = snake.int_pos[0]
-            max_x = WIDTH - RADUIS
-        elif angle == math.pi * 1.5 or math.pi / 2 == angle:
-            min_x = snake.int_pos[0] - RADUIS
-            max_x = snake.int_pos[0] + RADUIS # raduis /2 ???
-        else:
-            min_x = RADUIS
-            max_x = snake.int_pos[0]
+    min_dis_45 = min_dis_0 / math.cos(math.pi / 4)
+    if y_0 < 500 - x_0:
+        min_dis_45 = min_dis_45 - ((500 - x_0 - y_0) / math.cos(math.pi / 4))
 
-        if angle <= math.pi:
-            min_y = snake.int_pos[1]
-            # max_y = LENGTH - RADUIS
-            if not is_normal:
-                max_y = LENGTH - RADUIS
-            else:
-                hypotenuse = max_x / math.cos(angle)
-                max_y = round(hypotenuse * math.sin(angle))
+    min_dis_135 = min_dis_180 / math.cos(math.pi / 4)
+    if y_0 > x_0:
+        min_dis_135 = min_dis_135 - ((y_0 - x_0) / math.cos(math.pi / 4))
 
-        else:
-            max_y = snake.int_pos[1]
-            if not is_normal:
-                min_y = RADUIS
-            else:
-                hypotenuse = min_x / math.cos(angle)
-                min_y = round(hypotenuse * math.sin(angle))
+    min_dis_225 = min_dis_180 / math.cos(math.pi / 4)
+    if y_0 > 500 - x_0:
+        min_dis_225 = min_dis_225 - ((y_0 - 500 + x_0) / math.cos(math.pi / 4))
 
+    min_dis_315 = min_dis_0 / math.cos(math.pi / 4)
+    if y_0 < x_0:
+        min_dis_315 = min_dis_315 - ((x_0 - y_0) / math.cos(math.pi / 4))
 
+    for s in lst_of_snakes:
+        for x in s.history:
+            y = s.history[x]
+            dis = math.sqrt(((x - x_0) ** 2) + ((y - y_0) ** 2))
 
-        # loop
-        for s in lst_of_snakes:
-            for key_x in s.history:
-                if key_x < min_x or key_x > max_x:
-                    continue
-                if not is_normal:
-                    hypotenuse = False
-                else:
-                    hypotenuse = key_x / math.cos(angle)
-                    taregt_y = round(hypotenuse * math.sin(angle))
-                for key_y in s.history[key_x]:
-                    if min_y <= key_y <= max_y:
-                        bo = True
-                        if hypotenuse:
-                            bo = False
-                            if collision_between_two_dots((key_x, key_y), (key_x, taregt_y)):
-                                bo = True
-                        if bo:
-                            # print("uri")
-                            temp_dis = math.sqrt(((snake.int_pos[0] - key_x) ** 2) + ((snake.int_pos[1] - key_y) ** 2))
-                            if min_dis is None or temp_dis < min_dis:
-                                min_dis = temp_dis
-                            # break # becuse the rest of the y dont buderr me anymore??
-                            # only break if the angle is not 90 or 270
+            # calculation for 0 degree
+            if x_0 - 2 * RADUIS < x and x > x_0 + 2 * RADUIS and y > y_0 and min_dis_0 < dis:
+                # we have a collision!!
+                min_dis_0 = dis
 
-        temp_dis = math.sqrt(((max_x - snake.int_pos[0]) ** 2) + ((max_y - snake.int_pos[1]) ** 2))
-        if min_dis is None or temp_dis < min_dis:
-            # well is edge
-            min_dis = temp_dis
+            # calculation for 45 degree
+            if x < x_0 and y_0 - 2 * RADUIS - x < y < y_0 + 2 * RADUIS - x and min_dis_45 < dis:
+                # we have a collision!!
+                min_dis_45 = dis
 
-        # TODO also add second well
-        lst.append(min_dis)
-    return lst
+            # calculation for 90 degree
+            if x < x_0 and y_0 - 2 * RADUIS < y < y_0 + 2 * RADUIS and min_dis_90 < dis:
+                # we have a collision!!
+                min_dis_90 = dis
+
+            # calculation for 135 degree
+            if x < x_0 and y_0 - 2 * RADUIS + x < y < y_0 + 2 * RADUIS + x and min_dis_135 < dis:
+                # we have a collision!!
+                min_dis_135 = dis
+
+            # calculation for 180 degree
+            if x_0 - 2 * RADUIS < x and x > x_0 + 2 * RADUIS and y < y_0 and min_dis_180 < dis:
+                # we have a collision!!
+                min_dis_180 = dis
+
+            # calculation for 225 degree
+            if x > x_0 and y_0 - 2 * RADUIS - x < y < y_0 + 2 * RADUIS - x and min_dis_225 < dis:
+                # we have a collision!!
+                min_dis_225 = dis
+
+            # calculation for 270 degree
+            if x > x_0 and y_0 - 2 * RADUIS < y < y_0 + 2 * RADUIS and min_dis_270 < dis:
+                # we have a collision!!
+                min_dis_270 = dis
+
+            # calculation for 315 degree
+            if x > x_0 and y_0 - 2 * RADUIS + x < y < y_0 + 2 * RADUIS + x and min_dis_315 < dis:
+                # we have a collision!!
+                min_dis_315 = dis
+
+    return [min_dis_0, min_dis_45, min_dis_90, min_dis_135, min_dis_180, min_dis_225, min_dis_270, min_dis_315]
 
 
 pygame.init()
