@@ -1,132 +1,243 @@
 import neat
 import os
 import random
-from new_snake import *
+from snake import *
 import numpy
+import pickle
 
-
-# input = [] * 500 * 500
-# input[i] = 0 -> safe, 1 -> danger, 2 -> last, 3 -> my current pos, 4 ->  enemy current pos
-
-def crete_default_input(lst_of_snakes: list) -> list:
-    """"""
-
+def crete_list_angle() -> list:
+    """ value = (move_x, move_y) """
+    nums_of_angels = 8
     lst = []
-    for x in range(WIDTH):
-        for y in range(LENGTH):
-            if x < RADUIS or x + RADUIS > WIDTH or y < RADUIS or y + RADUIS > LENGTH:
-                lst.append(1)
-            else:
-                lst.append(0)
-
-    for s in lst_of_snakes:
-        for x in s.history:
-            for y in s.history[x]:
-                for rx in range(2 * RADUIS):
-                    if rx > RADUIS:
-                        rx = RADUIS - rx
-                    for ry in range(2 * RADUIS):
-                        if ry > RADUIS:
-                            ry = RADUIS - ry
-                        lst[x + rx][y + ry] = 2
-                # lst[x][y] = 1
-
+    for i in range(nums_of_angels):
+        angle = (360 / nums_of_angels) * i
+        # move 4????
+        num = RADUIS * 1
+        if angle == 0:
+            move_x = num
+            move_y = 0
+        elif angle == 90:
+            move_x = 0
+            move_y = num
+        elif angle == 180:
+            move_x = -num
+            move_y = 0
+        elif angle == 270:
+            move_x = 0
+            move_y = -num
+        elif angle < 90:
+            move_x = num
+            move_y = num
+        elif angle < 180:
+            move_x = -num
+            move_y = num
+        elif angle < 270:
+            move_x = -num
+            move_y = -num
+        else:
+            move_x = num
+            move_y = -num
+        lst.append((move_x, move_y))
     return lst
 
 
-def set_input(default_input: list, snake: Snake) -> list:
-    input_s = []
-    input_s.extend(default_input)
-    #input_s = default_input
+lst_of_moves = crete_list_angle()
+
+
+# def crete_input(snake: Snake, history_game) -> list:
+#     """ find first well from 8 directs"""
+#     nums_of_angels = 8
+#     lst = []
+#     for i in range(nums_of_angels):
+#         # min_dis = None
+#         angle = (360 / nums_of_angels) * i
+#         x = snake.int_pos[0] + (RADUIS * lst_of_moves[i][0])
+#         y = snake.int_pos[1] + (RADUIS * lst_of_moves[i][1])
+#         run = True
+#         while run:
+#             for rx in range(2 * RADUIS):
+#                 if rx > RADUIS:
+#                     rx = RADUIS - rx
+#                 for ry in range(RADUIS):
+#                     if outside((x + rx, y + (ry * lst_of_moves[i][1]))):
+#                         run = False
+#                         break
+#                     if run and history_game[x + rx][y + (ry * lst_of_moves[i][1])]:
+#                         run = False
+#                         break
+#             if run:
+#                 x += lst_of_moves[i][0]
+#                 y += lst_of_moves[i][1]
+#         temp_dis = math.sqrt(((snake.int_pos[0] - x) ** 2) + ((snake.int_pos[1] - y) ** 2))
+#         #TODO if well is edge
+#         lst.append(temp_dis)
+#     lst.append(snake.direct)
+#     return lst
+
+
+def crete_input(snake: Snake, history_game, win=None) -> list:
+    # win is a debugging tool
+    x = snake.int_pos[0]
+    y = snake.int_pos[1]
+    lst = []
+    num = 16
+    for ry in range(2 * RADUIS + 1):
+        if ry > RADUIS:
+            ry = RADUIS - ry
+        # add from left
+        if outside((x + RADUIS + num, y + ry)):
+            lst.append(1)
+        else:
+            lst.append(history_game[x + RADUIS + num][y + ry])
+        # add from right
+        if outside((x - RADUIS - num, y + ry)):
+            lst.append(1)
+        else:
+            lst.append(history_game[x - RADUIS - num][y + ry])
+        if win is not None:
+            pygame.draw.circle(win, (0, 0, 255), (x + RADUIS + num, y + ry), 1)
+            pygame.draw.circle(win, (0, 0, 255), (x - RADUIS - num, y + ry), 1)
 
     for rx in range(2 * RADUIS):
+        if rx == RADUIS:
+            continue
         if rx > RADUIS:
             rx = RADUIS - rx
-        for ry in range(2 * RADUIS):
-            if ry > RADUIS:
-                ry = RADUIS - ry
-            input_s[snake.last[0] + rx][snake.last[1] + ry] = 2
+        # add from top
+        if outside((x + rx, y + RADUIS + num)):
+            lst.append(1)
+        else:
+            lst.append(history_game[x + rx][y + RADUIS + num])
+        # add from bottom
+        if outside((x + rx, y - RADUIS - num)):
+            lst.append(1)
+        else:
+            lst.append(history_game[x + rx][y - RADUIS- num])
+        if win is not None:
+            pygame.draw.circle(win, (0, 0, 255), (x + rx, y + RADUIS + num), 1)
+            pygame.draw.circle(win, (0, 0, 255), (x + rx, y - RADUIS - num), 1)
+    lst.append(snake.direct)
+    return lst
 
-    for rx in range(2 * RADUIS):
-        if rx > RADUIS:
-            rx = RADUIS - rx
-        for ry in range(2 * RADUIS):
-            if ry > RADUIS:
-                ry = RADUIS - ry
-            input_s[snake.int_pos[0] + rx][snake.int_pos[1] + ry] = 3
 
-    return input_s
+def change_angle(snake: Snake, symbol: int) -> None:
+    # symbol = 0/1/2
+    if symbol == 2:
+        pass
+    elif symbol == 1:
+        snake.direct += CHENGEANGEL
+    else:
+        snake.direct -= CHENGEANGEL
 
+
+pop_size = 256
 
 def eval_genomes(genomes, config):
-    def split_genomes(gens, size_of_group=4):
-        """
-        split the genomes randomly into groups, each group suppose to play different game
-        """
-        lst_of_groups = [[]]
-        lst_i = 0
-        while gens:
-            i = random.randrange(len(gens))
-            if len(lst_of_groups[lst_i]) <= size_of_group:
-                lst_of_groups[lst_i].append(gens[i])
-            else:
-                lst_i += 1
-                lst_of_groups.append([])
-                lst_of_groups[lst_i].append(gens[i])
-            del gens[i]
-        return lst_of_groups
 
-    lst_of_groups = split_genomes(genomes)
+    if len(genomes) != pop_size:
+        print("shit")
 
-    def play_game(group: list, rounds: int=3) -> None:
+    def play_game(group: list, rounds: int=1) -> None:
         """
         run a game between the group, set there fitness
         """
-        lst_of_snakes = []
-        start_places_x = []
-        start_places_y = []
         nets = []
-
-        # crate snakes
+        ge = []
+        # set the net
         for player_id, player in group:
             player.fitness = 0
-
-            # set the net
             net = neat.nn.FeedForwardNetwork.create(player, config)
             nets.append(net)
+            ge.append(player)
 
-            # crate x and y
-            x = random.randrange(20, 480)
-            while x not in start_places_x:
-                x = random.randrange(20, 480)
-            start_places_x.append(x)
-            y = random.randrange(20, 480)
-            while y not in start_places_y:
-                y = random.randrange(20, 480)
-            start_places_y.append(y)
+        # run
+        num = 0
+        while num < rounds:
+            # set the game
+            history_game = [[0] * WIDTH for i in range(LENGTH)]
+            cs1 = Snake(random.choice(range(10, 490)), random.choice(range(10, 490)), math.pi / 2, None)
+            cs2 = Snake(random.choice(range(10, 490)), random.choice(range(10, 490)), math.pi / 2, None)
+            cs3 = Snake(random.choice(range(10, 490)), random.choice(range(10, 490)), math.pi / 2, None)
+            cs4 = Snake(random.choice(range(10, 490)), random.choice(range(10, 490)), math.pi / 2, None)
+#             cs1 = Snake(100, 100, math.pi / 2, None)
+#             cs2 = Snake(200, 200, math.pi / 2, None)
+#             cs3 = Snake(300, 300, math.pi / 2, None)
+#             cs4 = Snake(400, 400, math.pi / 2, None)
 
-            lst_of_snakes.append(Snake(x, y, math.pi / 4, None))
+            lst_of_snakes = [cs1, cs2, cs3, cs4]
+            history_game = cs1.add(history_game)
+            history_game = cs2.add(history_game)
+            history_game = cs3.add(history_game)
+            history_game = cs4.add(history_game)
+            num += 1
+            # run round
+            run = True
+            # print("round start...")
+            while run:
+                # stop if only one or less is alive
+                temp = 0
+                for s in lst_of_snakes:
+                    if not s.is_dead:
+                        temp += 1
+                if temp <= 1:
+                    for i, s in enumerate(lst_of_snakes):
+                        ge[i].fitness += s.survival_time
+                    run = False
+                    break
 
-        default_input = crete_default_input(lst_of_snakes)
+                # change angle
+                for i, snake in enumerate(lst_of_snakes):
+                    if not snake.is_dead:
+                        output = nets[i].activate(crete_input(snake, history_game))
+                        change_angle(lst_of_snakes[1], output.index(max(output)))
 
-        # run round
-        while True:
-            # stop if only one or less is alive
-            temp = 0
-            for s in lst_of_snakes:
-                if not s.is_dead:
-                    temp += 1
-            if temp <= 1:
-                break
+                # move the snakes
+                for s in lst_of_snakes:
+                    if s.is_dead:
+                        continue
 
-            # change angle
-            for i, snake in enumerate(lst_of_snakes):
-                input_s = set_input(default_input, snake)
-                # input_s = tuple(input_s)
-                output = nets[i].activate(input_s)
+                    if s.is_hop:
+                        s.when_to_stop -= 1
+                        if s.when_to_stop <= 0:
+                            s.is_hop = False
+                            s.when_to_hop = random.choice(WIATUNTILHOP)
+                    elif s.when_to_hop <= 0:
+                        s.is_hop = True
+                        s.when_to_stop = HOPINGTIME
+                    else:
+                        s.when_to_hop -= 1
 
+                    s.last = s.int_pos
+                    s.move()
 
+                # find collision
+                for s1 in lst_of_snakes:
+                    if s1.is_dead:
+                        continue
+                    if s1.is_hop:
+                        s1.outside()
+                        continue
+                    if s1.outside():
+                        continue
+                    s1.collision(history_game)
 
+                # add to history
+                for s1 in lst_of_snakes:
+                    if s1.is_hop:
+                        continue
+                    history_game = s1.add(history_game)
+
+                for s1 in lst_of_snakes:
+                    if not s1.is_dead:
+                        s1.survival_time += 1
+                    else:
+                        s1.survival_time -= 1
+
+    for i in range(int(pop_size / 4)):
+        group = []
+        for x in range(4):
+            group.append(genomes[(i * 4) + x])
+        play_game(group)
 
 
 
@@ -150,10 +261,16 @@ def run(config_file):
     p.add_reporter(neat.Checkpointer(5))
 
     # Run for up to 50 generations.
-    winner = p.run(eval_genomes, 50)
+    winner = p.run(eval_genomes, 15)
 
     # show final stats
-    print('\nBest genome:\n{!s}'.format(winner))
+    # print('\nBest genome:\n{!s}'.format(winner))
+
+    # save the module
+    winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
+    pickle.dump(winner_net, open("best.pickle", "wb"))
+
+
 
 
 # Determine path to configuration file. This path manipulation is
@@ -162,5 +279,3 @@ def run(config_file):
 local_dir = os.path.dirname(__file__)
 config_path = os.path.join(local_dir, 'config.txt')
 run(config_path)
-
-
