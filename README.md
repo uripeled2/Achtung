@@ -1,7 +1,7 @@
 # Achtung
  A game based on Achtung or curve fever
  
- # requirements
+ # Requirements
  python
  pygame
 neat-python
