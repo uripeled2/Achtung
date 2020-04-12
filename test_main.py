@@ -1,83 +1,121 @@
-
-import random
 from snake import *
-import numpy
+import pygame
+import random
 
 
-# input[0..8] = first wall from this angle (0, 45, 90, 135, 180, 225, 270, 315)
+def crete_list_angle() -> list:
+    """ value = (move_x, move_y) """
+    nums_of_angels = 8
+    lst = []
+    for i in range(nums_of_angels):
+        angle = (360 / nums_of_angels) * i
+        # move 4????
+        num = RADUIS * 1
+        if angle == 0:
+            move_x = num
+            move_y = 0
+        elif angle == 90:
+            move_x = 0
+            move_y = num
+        elif angle == 180:
+            move_x = -num
+            move_y = 0
+        elif angle == 270:
+            move_x = 0
+            move_y = -num
+        elif angle < 90:
+            move_x = num
+            move_y = num
+        elif angle < 180:
+            move_x = -num
+            move_y = num
+        elif angle < 270:
+            move_x = -num
+            move_y = -num
+        else:
+            move_x = num
+            move_y = -num
+        lst.append((move_x, move_y))
+    return lst
 
-def crete_input(snake: Snake, lst_of_snakes: list, nums_of_angels: int = 8) -> list:
-    # define the 0,0 point
-    x_0 = snake.int_pos[0]
-    y_0 = snake.int_pos[0]
 
-    min_dis_0 = 500 - y_0 - RADUIS
-    min_dis_90 = 500 - x_0 - RADUIS
-    min_dis_180 = y_0 - RADUIS
-    min_dis_270 = x_0 - RADUIS
+lst_of_moves = crete_list_angle()
 
-    min_dis_45 = min_dis_0 / math.cos(math.pi / 4)
-    if y_0 < 500 - x_0:
-        min_dis_45 = min_dis_45 - ((500 - x_0 - y_0) / math.cos(math.pi / 4))
 
-    min_dis_135 = min_dis_180 / math.cos(math.pi / 4)
-    if y_0 > x_0:
-        min_dis_135 = min_dis_135 - ((y_0 - x_0) / math.cos(math.pi / 4))
+# def crete_input(snake: Snake, history_game) -> list:
+#     nums_of_angels = 8
+#     lst = []
+#     for i in range(nums_of_angels):
+#         # min_dis = None
+#         angle = (360 / nums_of_angels) * i
+#         x = snake.int_pos[0] + (RADUIS * lst_of_moves[i][0])
+#         y = snake.int_pos[1] + (RADUIS * lst_of_moves[i][1])
+#         run = True
+#         while run:
+#             for rx in range(2 * RADUIS):
+#                 if rx > RADUIS:
+#                     rx = RADUIS - rx
+#                 for ry in range(RADUIS):
+#                     if outside((x + rx, y + (ry * lst_of_moves[i][1]))):
+#                         run = False
+#                         break
+#                     if run and history_game[x + rx][y + (ry * lst_of_moves[i][1])]:
+#                         run = False
+#                         break
+#             if run:
+#                 x += lst_of_moves[i][0]
+#                 y += lst_of_moves[i][1]
+#         temp_dis = math.sqrt(((snake.int_pos[0] - x) ** 2) + ((snake.int_pos[1] - y) ** 2))
+#         #TODO if well is edge
+#         lst.append(temp_dis)
+#     lst.append(snake.direct)
+#     return lst
 
-    min_dis_225 = min_dis_180 / math.cos(math.pi / 4)
-    if y_0 > 500 - x_0:
-        min_dis_225 = min_dis_225 - ((y_0 - 500 + x_0) / math.cos(math.pi / 4))
+def crete_input(snake: Snake, history_game, win=None) -> list:
+    # win is a debugging tool
+    around = 1
+    x = snake.int_pos[0]
+    y = snake.int_pos[1]
+    lst = []
+    num = 8
+    for _ in range(around):
+        for ry in range(2 * RADUIS + 1):
+            if ry > RADUIS:
+                ry = RADUIS - ry
+            # add from left
+            if outside((x + RADUIS + num, y + ry)):
+                lst.append(1)
+            else:
+                lst.append(history_game[x + RADUIS + num][y + ry])
+            # add from right
+            if outside((x - RADUIS - num, y + ry)):
+                lst.append(1)
+            else:
+                lst.append(history_game[x - RADUIS - num][y + ry])
+            if win is not None:
+                pygame.draw.circle(win, (0, 0, 255), (x + RADUIS + num, y + ry), 1)
+                pygame.draw.circle(win, (0, 0, 255), (x - RADUIS - num, y + ry), 1)
 
-    min_dis_315 = min_dis_0 / math.cos(math.pi / 4)
-    if y_0 < x_0:
-        min_dis_315 = min_dis_315 - ((x_0 - y_0) / math.cos(math.pi / 4))
-
-    for s in lst_of_snakes:
-        for x in s.history:
-            y = s.history[x]
-            dis = math.sqrt(((x - x_0) ** 2) + ((y - y_0) ** 2))
-
-            # calculation for 0 degree
-            if x_0 - 2 * RADUIS < x and x > x_0 + 2 * RADUIS and y > y_0 and min_dis_0 < dis:
-                # we have a collision!!
-                min_dis_0 = dis
-
-            # calculation for 45 degree
-            if x < x_0 and y_0 - 2 * RADUIS - x < y < y_0 + 2 * RADUIS - x and min_dis_45 < dis:
-                # we have a collision!!
-                min_dis_45 = dis
-
-            # calculation for 90 degree
-            if x < x_0 and y_0 - 2 * RADUIS < y < y_0 + 2 * RADUIS and min_dis_90 < dis:
-                # we have a collision!!
-                min_dis_90 = dis
-
-            # calculation for 135 degree
-            if x < x_0 and y_0 - 2 * RADUIS + x < y < y_0 + 2 * RADUIS + x and min_dis_135 < dis:
-                # we have a collision!!
-                min_dis_135 = dis
-
-            # calculation for 180 degree
-            if x_0 - 2 * RADUIS < x and x > x_0 + 2 * RADUIS and y < y_0 and min_dis_180 < dis:
-                # we have a collision!!
-                min_dis_180 = dis
-
-            # calculation for 225 degree
-            if x > x_0 and y_0 - 2 * RADUIS - x < y < y_0 + 2 * RADUIS - x and min_dis_225 < dis:
-                # we have a collision!!
-                min_dis_225 = dis
-
-            # calculation for 270 degree
-            if x > x_0 and y_0 - 2 * RADUIS < y < y_0 + 2 * RADUIS and min_dis_270 < dis:
-                # we have a collision!!
-                min_dis_270 = dis
-
-            # calculation for 315 degree
-            if x > x_0 and y_0 - 2 * RADUIS + x < y < y_0 + 2 * RADUIS + x and min_dis_315 < dis:
-                # we have a collision!!
-                min_dis_315 = dis
-
-    return [min_dis_0, min_dis_45, min_dis_90, min_dis_135, min_dis_180, min_dis_225, min_dis_270, min_dis_315]
+        for rx in range(2 * RADUIS):
+            if rx == RADUIS:
+                continue
+            if rx > RADUIS:
+                rx = RADUIS - rx
+            # add from top
+            if outside((x + rx, y + RADUIS + num)):
+                lst.append(1)
+            else:
+                lst.append(history_game[x + rx][y + RADUIS + num])
+            # add from bottom
+            if outside((x + rx, y - RADUIS - num)):
+                lst.append(1)
+            else:
+                lst.append(history_game[x + rx][y - RADUIS- num])
+            if win is not None:
+                pygame.draw.circle(win, (0, 0, 255), (x + rx, y + RADUIS + num), 1)
+                pygame.draw.circle(win, (0, 0, 255), (x + rx, y - RADUIS - num), 1)
+    lst.append(snake.direct)
+    return lst
 
 
 pygame.init()
@@ -86,14 +124,28 @@ win = pygame.display.set_mode((500, 500))
 pygame.display.set_caption("First Game")
 
 run = True
-
+import pickle
+winner_net = pickle.load(open("best.pickle", "rb"))
 cs1 = Snake(random.choice(range(10, 490)), random.choice(range(10, 490)), math.pi / 4, (255, 0, 0))
 cs2 = Snake(random.choice(range(10, 490)), random.choice(range(10, 490)), math.pi / 2, (0, 255, 0))
+
 lst_of_snakes = [cs1, cs2]
 
-# dict: key = pos_x; value = dict: key = pos_y; value = True;
-count = 0
+
+def change_angle(snake: Snake, symbol: int) -> None:
+    # symbol = 0/1/2
+    if symbol == 0:
+        pass
+    elif symbol == 1:
+        snake.direct += CHENGEANGEL
+    else:
+        snake.direct -= CHENGEANGEL
+
 pause = False
+history_game = [[0] * WIDTH for i in range(LENGTH)]
+history_game = cs1.add(history_game)
+history_game = cs2.add(history_game)
+
 while run:
     win.fill((0, 0, 0))
     pygame.time.delay(FRAME)
@@ -110,10 +162,11 @@ while run:
         if keys[pygame.K_RIGHT]:
             lst_of_snakes[0].direct += CHENGEANGEL
 
-        if keys[pygame.K_a]:
-            lst_of_snakes[1].direct -= CHENGEANGEL
-        if keys[pygame.K_s]:
-            lst_of_snakes[1].direct += CHENGEANGEL
+        # change angle
+        if not lst_of_snakes[1].is_dead:
+            inp = crete_input(lst_of_snakes[1], history_game, win)
+            output = winner_net.activate(inp)
+            change_angle(lst_of_snakes[1], output.index(max(output)))
 
         # stop if anyone is die
         # die = False
@@ -130,6 +183,7 @@ while run:
         if die:
             pygame.time.delay(1000)
             pygame.quit()
+
 
         # move the snakes
         for s in lst_of_snakes:
@@ -150,9 +204,9 @@ while run:
             s.last = s.int_pos
             s.move()
 
+
         # draw the snakes
-        for s in lst_of_snakes:
-            s.draw(win)
+        draw_all(win, lst_of_snakes, history_game)
 
         # find collision
         for s1 in lst_of_snakes:
@@ -161,37 +215,15 @@ while run:
             if s1.is_hop:
                 s1.outside()
                 continue
-            if s1.collision(s1):
+            if s1.outside():
                 continue
-            s1.outside()
-            for s2 in lst_of_snakes:
-                if s1.is_dead:
-                    break
-                if s1 == s2:
-                    continue
-                s1.collision(s2)
+            s1.collision(history_game)
 
         for s1 in lst_of_snakes:
-            if s1.is_hop:  # or s1.is_dead:
+            if s1.is_hop:
                 continue
-            elif s1.history.get(s1.int_pos[0]) is None:
-                s1.history[s1.int_pos[0]] = {}
-
-            s1.history[s1.int_pos[0]][s1.int_pos[1]] = True
-
-        # debug colse well
-        # lst = crete_input(lst_of_snakes[0], lst_of_snakes, 1)
-        lst = crete_input(lst_of_snakes[0], lst_of_snakes)
-        print(lst)
-
-        # make a dealy
-        # num = 0
-        # for i in range(10 ** 7):
-        #     num += i
-
+            history_game = s1.add(history_game)
 
         pygame.display.update()
-
-
 
 pygame.quit()
