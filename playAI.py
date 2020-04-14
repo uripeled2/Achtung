@@ -41,7 +41,7 @@ while run:
         if keys[pygame.K_RIGHT]:
             lst_of_snakes[0].direct += CHENGEANGEL
         if not lst_of_snakes[1].is_dead:
-            inp = lst_of_snakes[1].crete_input_nearest_well(history_game, win)
+            inp = lst_of_snakes[1].crete_input_nearest_well(history_game)
             output = winner_net.activate(inp)
             lst_of_snakes[1].change_angle(output.index(max(output)))
 
