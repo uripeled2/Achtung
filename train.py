@@ -1,30 +1,15 @@
 import neat
 import os
 from snake import *
+from game import Game
 import pickle
-
-pop_size = 256
+import pygame
 
 
 def eval_genomes(genomes, config):
 
-    if len(genomes) != pop_size:
-        print("shit")
-
     for player_id, player in genomes:
         player.fitness = 0
-
-    def split(genomes) -> list:
-        size_of_group = 4
-        gen = list(genomes)
-        lst = [[]]
-        i = 0
-        while gen:
-            lst[i].append(gen.pop(random.randrange(len(gen))))
-            if len(lst[i]) >= size_of_group:
-                lst.append([])
-                i += 1
-        return lst
 
     def play_game(group: list, rounds: int = 1) -> None:
         """
@@ -43,36 +28,31 @@ def eval_genomes(genomes, config):
         num = 0
         while num < rounds:
             # set the game
+            # pygame.init()
+            # win = pygame.display.set_mode((WIDTH, LENGTH))
+            win = None
+            # pygame.display.set_caption("First Game")
             history_game = [[0] * WIDTH for _ in range(LENGTH)]
-            cs1 = Snake(random.randrange(10, 490), random.randrange(10, 490), math.pi / random.randrange(1, 5), None)
-            cs2 = Snake(random.randrange(10, 490), random.randrange(10, 490), math.pi / random.randrange(1, 5), None)
-            cs3 = Snake(random.randrange(10, 490), random.randrange(10, 490), math.pi / random.randrange(1, 5), None)
-            cs4 = Snake(random.randrange(10, 490), random.randrange(10, 490), math.pi / random.randrange(1, 5), None)
-            # cs1 = Snake(100, 100, math.pi / 2, None)
-            # cs2 = Snake(200, 200, math.pi / 2, None)
-            # cs3 = Snake(300, 300, math.pi / 2, None)
-            # cs4 = Snake(400, 400, math.pi / 2, None)
 
-            lst_of_snakes = [cs1, cs2, cs3, cs4]
-            history_game = cs1.add(history_game)
-            history_game = cs2.add(history_game)
-            history_game = cs3.add(history_game)
-            history_game = cs4.add(history_game)
+            def crete_snakes(history_game):
+                lst_of_snakes = []
+                for _ in range(len(group)):
+                    s = Snake(random.randrange(10, 490), random.randrange(10, 490), math.pi / random.randrange(1, 5), (255, 0, 0))
+                    while s.collision(history_game):
+                        s.int_pos = (random.randrange(10, 490), random.randrange(10, 490))
+                    history_game = s.add(history_game)
+                    lst_of_snakes.append(s)
+                return lst_of_snakes, history_game
+
+            lst_of_snakes, history_game = crete_snakes(history_game)
+
             num += 1
             # run round
             run = True
-            # print("round start...")
+            game = Game(lst_of_snakes, history_game, win)
             while run:
-                # stop if only one or less is alive
-                temp = 0
-                for s in lst_of_snakes:
-                    if not s.is_dead:
-                        temp += 1
-                if temp <= 1:
-                    for i, s in enumerate(lst_of_snakes):
-                        ge[i].fitness += s.survival_time
-                    run = False
-                    break
+                # win.fill((0, 0, 0))
+                # pygame.time.delay(FRAME)
 
                 # change angle
                 for i, snake in enumerate(lst_of_snakes):
@@ -80,55 +60,23 @@ def eval_genomes(genomes, config):
                         output = nets[i].activate(snake.crete_input_nearest_well(history_game))
                         snake.change_angle(output.index(max(output)))
 
-                # move the snakes
-                for s in lst_of_snakes:
-                    if s.is_dead:
-                        continue
+                if not game.update(to_draw=False):
+                    run = False
+                    break
 
-                    if s.is_hop:
-                        s.when_to_stop -= 1
-                        if s.when_to_stop <= 0:
-                            s.is_hop = False
-                            s.when_to_hop = random.choice(WIATUNTILHOP)
-                    elif s.when_to_hop <= 0:
-                        s.is_hop = True
-                        s.when_to_stop = HOPINGTIME
-                    else:
-                        s.when_to_hop -= 1
+                # pygame.display.update()
 
-                    s.last = s.int_pos
-                    s.move()
+            # pygame.quit()
 
-                # find collision
-                for s1 in lst_of_snakes:
-                    if s1.is_dead:
-                        continue
-                    if s1.is_hop:
-                        s1.outside()
-                        continue
-                    if s1.outside():
-                        continue
-                    s1.collision(history_game)
+            # set score
+            for i, s in enumerate(lst_of_snakes):
+                if s.place is None:
+                    s.place = game.last_place
+                    game.last_place += 1
+                ge[i].fitness += s.place
 
-                # add to history
-                for s1 in lst_of_snakes:
-                    if s1.is_hop:
-                        continue
-                    history_game = s1.add(history_game)
+    play_game(genomes, 5)
 
-                for s1 in lst_of_snakes:
-                    if not s1.is_dead:
-                        s1.survival_time += 1
-                    else:
-                        s1.survival_time -= 1
-
-    for i in range(int(pop_size / 4)):
-        group = []
-        if len(genomes) <= i * 4 + 3:
-            break
-        for x in range(4):
-            group.append(genomes[(i * 4) + x])
-        play_game(group)
 
 
 def run(config_file):
@@ -151,7 +99,7 @@ def run(config_file):
     p.add_reporter(neat.Checkpointer(5))
 
     # Run for up to 50 generations.
-    winner = p.run(eval_genomes, 18)
+    winner = p.run(eval_genomes, 50)
 
     # show final stats
     # print('\nBest genome:\n{!s}'.format(winner))
@@ -169,3 +117,5 @@ def run(config_file):
 local_dir = os.path.dirname(__file__)
 config_path = os.path.join(local_dir, 'config.txt')
 run(config_path)
+
+
