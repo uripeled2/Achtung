@@ -12,7 +12,6 @@ BACKGROUND = (0, 0, 0)
 WIATUNTILHOP = (10 * FRAME, 15 * FRAME)
 HOPINGTIME = int(3.5 * FRAME / SPEED)
 
-
 # history_game = [[0] * WIDTH for i in range(LENGTH)]
 
 # id != 0 or 1 !!!!
@@ -65,17 +64,14 @@ class Snake:
         self.when_to_stop = HOPINGTIME
         self.survival_time = 0
         self.id = from_color_to_id[color]
-        # self.add(history_game)
+        self.place = None
 
     def move(self):
         v1 = self.position[0] + SPEED * math.cos(self.direct)
         v2 = self.position[1] + SPEED * math.sin(self.direct)
         tu = (v1, v2)
         self.position = tu
-        # self.position = self.position + Vector2(1, 0).rotate(self.direct) * SPEED
-        # self.int_pos = (int(self.position[0]),  int(self.position[1]))
         self.int_pos = (round(self.position[0]), round(self.position[1]))
-        # add(self.int_pos[0], self.int_pos[1])
 
     def add(self, history_game):
         x = self.int_pos[0]
@@ -93,9 +89,8 @@ class Snake:
                     ry = RADUIS - ry
                 if rx == 0 and ry == 0:
                     continue
-                # if not outside((x + rx, y + ry)):
                 if 0 <= self.int_pos[0] + rx < 500 and 0 <= self.int_pos[1] + ry < 500:
-                    if history_game[x + rx][y + ry] == 0:  # or history_game[x + rx][y + ry] == 1:
+                    if history_game[x + rx][y + ry] == 0:
                         history_game[x + rx][y + ry] = 1
         return history_game
 
@@ -106,9 +101,6 @@ class Snake:
             for ry in range(2 * RADUIS):
                 if ry > RADUIS:
                     ry = RADUIS - ry
-                # if outside((self.int_pos[0] + rx, self.int_pos[1] + ry)):
-                #     self.is_dead = True
-                #     return True
                 if 0 <= self.int_pos[0] + rx < 500 and 0 <= self.int_pos[1] + ry < 500:
                     if history_game[self.int_pos[0] + rx][self.int_pos[1] + ry]:
                         if not collision_between_two_dots((self.int_pos[0] + rx, self.int_pos[1] + ry), self.last):
@@ -195,7 +187,7 @@ class Snake:
             y = snake.int_pos[1] + (RADUIS * lst_of_moves[i][1])
             times = 0
             run = True
-            while run and times < 5:
+            while run and times < 10:
                 times += 1
                 for rx in range(2 * RADUIS):
                     if rx > RADUIS:
@@ -210,11 +202,16 @@ class Snake:
                 if run:
                     x += lst_of_moves[i][0]
                     y += lst_of_moves[i][1]
-            temp_dis = math.sqrt(((snake.int_pos[0] + lst_of_moves[i][0] - x) ** 2) +
-            ((snake.int_pos[1] + lst_of_moves[i][1] - y) ** 2))
+
             if win is not None:
                 pygame.draw.circle(win, (255, 255, 255), (x - lst_of_moves[i][0], y - lst_of_moves[i][1]), 2)
-            lst.append(temp_dis)
+            if run:
+                lst.append(500)
+            else:
+                temp_dis = math.sqrt(((snake.int_pos[0] + lst_of_moves[i][0] - x) ** 2) +
+                                     (snake.int_pos[1] + lst_of_moves[i][1] - y) ** 2)
+                lst.append(temp_dis)
+
         lst.append(snake.direct)
         return lst
 
