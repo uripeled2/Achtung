@@ -31,7 +31,7 @@ def eval_genomes(genomes, config):
             
             """ 
             If you wish to see the snakes play you can undo the note on the pygame command.
-            It will make the run more slower but it is absolutely fun to watch
+            It will make the run slower but it is absolutely fun to watch
              """
             
             # pygame.init()
