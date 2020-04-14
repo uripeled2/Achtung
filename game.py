@@ -1,4 +1,3 @@
-
 from snake import *
 
 
@@ -8,6 +7,7 @@ class Game:
         self.history_game = history_game
         self.win = win
         self.train = train
+        self.last_place = 0
 
     def update(self, to_draw: bool = True) -> bool:
         """
@@ -15,6 +15,9 @@ class Game:
         :param to_draw:
         :return: if the game end or not
         """
+
+        if to_draw and self.win is None:
+            raise SyntaxError
 
         def move(self):
             """ moves the snakes"""
@@ -57,12 +60,15 @@ class Game:
                     continue
                 self.history_game = s1.add(self.history_game)
 
-        def fintess(self):
-            pass
+        def fitness(self):
+            """ updtae the fitness score for each snake"""
+            for s in self.lst_of_snakes:
+                if s.is_dead and s.place is None:
+                    s.place = self.last_place
+                    self.last_place += 1
 
         def to_stop(self) -> bool:
             """
-
             :param self:
             :return: if the game reach to end
             """
@@ -81,6 +87,7 @@ class Game:
                 draw(self)
             search_collision(self)
             add(self)
+            fitness(self)
             return True
         else:
             return False
