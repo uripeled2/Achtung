@@ -28,6 +28,12 @@ def eval_genomes(genomes, config):
         num = 0
         while num < rounds:
             # set the game
+            
+            """ 
+            If you wish to see the snakes play you can undo the note on the pygame command.
+            It will make the run more slower but it is absolutely fun to watch
+             """
+            
             # pygame.init()
             # win = pygame.display.set_mode((WIDTH, LENGTH))
             win = None
