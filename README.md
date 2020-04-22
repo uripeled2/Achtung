@@ -8,6 +8,6 @@ An interactive multiplayer platform to play “Achtung”
 
  
  # Requirements
- python3, pygame, neat-python
+ python3, pygame, neat-python, tensorflow, numpy
 
 
