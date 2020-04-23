@@ -112,7 +112,10 @@ if __name__ == "__main__":
             game.add()
             game.fitness()
             next_state = game.history_game
-            reward = 1
+            if not done:
+                reward = 1
+            else:
+                reward = -200
             _ = None
             next_state = np.reshape(next_state, [1, WIDTH, LENGTH])
 
