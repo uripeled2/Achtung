@@ -1,5 +1,5 @@
 # Achtung
-An interactive multiplayer platform to play “Achtung”
+An interactive multiplayer platform to play “Achtung” (Curve Fever)
  
  You can play with your friend if you run main and if you get bored from this you can go ahead and try to train your AI using the train file, but be careful if you change something there you might need to update the config file as well. In order to play against your AI run the file playAI
  
